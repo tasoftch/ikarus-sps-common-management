@@ -1,0 +1,24 @@
+{
+  "name": "ikarus/sps-common-management",
+  "license": "BSD-3-Clause",
+  "minimum-stability": "dev",
+  "description": "The common management is designed to combine two or more running sps with their values and commands for sharing them between them.",
+  "authors": [
+    {
+      "name": "Thomas Abplanalp",
+      "email": "info@tasoft.ch"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Ikarus\\SPS\\Common\\" : "src"
+    }
+  },
+  "require" : {
+    "php": "^7.2",
+    "ikarus/sps": "dev-master"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6"
+  }
+}
