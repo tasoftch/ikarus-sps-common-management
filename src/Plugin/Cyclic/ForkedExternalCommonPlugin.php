@@ -35,6 +35,7 @@
 namespace Ikarus\SPS\Common\Plugin\Cyclic;
 
 use Ikarus\SPS\Common\MySQLCommonPluginManagement;
+use Ikarus\SPS\Common\Plugin\CommonConnectorInterface;
 use Ikarus\SPS\CyclicEngineInterface;
 use Ikarus\SPS\EngineInterface;
 use Ikarus\SPS\Exception\SPSException;
@@ -54,9 +55,8 @@ use TASoft\Util\PDO;
 class ForkedExternalCommonPlugin extends CallbackCyclicPlugin implements SetupPluginInterface, TearDownPluginInterface, EngineDependentPluginInterface
 {
     private $processID;
-    private $dsn;
-    private $username;
-    private $password;
+    /** @var CommonConnectorInterface */
+    private $connector;
     private $frequency;
 
     /** @var CyclicEngineInterface */
@@ -68,15 +68,13 @@ class ForkedExternalCommonPlugin extends CallbackCyclicPlugin implements SetupPl
     }
 
 
-    public function __construct(string $identifier, callable $callback, string $dsn, string $username = NULL, string $password = NULL, int $frequency = 0)
+    public function __construct(string $identifier, callable $callback, CommonConnectorInterface $connector, int $frequency = 0)
     {
         if(!function_exists('pcntl_fork'))
             throw new SPSException("Forked plugins are only available if the php extension PCNTL is installed");
 
         parent::__construct($identifier, $callback);
-        $this->dsn = $dsn;
-        $this->username = $username;
-        $this->password = $password;
+        $this->connector = $connector;
         $this->frequency = $frequency;
     }
 
@@ -95,7 +93,7 @@ class ForkedExternalCommonPlugin extends CallbackCyclicPlugin implements SetupPl
     }
 
     private function startEngineSimulation() {
-        $PDO = new PDO($this->dsn, $this->username, $this->password);
+        $PDO = $this->connector->getPDO();
         $management = new MySQLCommonPluginManagement($PDO);
 
         $freq = 1 / ($this->frequency ?: $this->mainEngine->getFrequency());
