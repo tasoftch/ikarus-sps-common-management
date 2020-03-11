@@ -16,7 +16,8 @@
   },
   "require" : {
     "php": "^7.2",
-    "ikarus/sps": "dev-master"
+    "ikarus/sps": "dev-master",
+    "tasoft/php-pdo": "dev-master"
   },
   "require-dev": {
     "phpunit/phpunit": "^6"
