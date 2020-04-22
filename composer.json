@@ -16,8 +16,8 @@
   },
   "require" : {
     "php": "^7.2",
-    "ikarus/sps": "dev-master",
-    "tasoft/php-pdo": "dev-master",
+    "ikarus/sps": "^1",
+    "tasoft/php-pdo": "^0",
     "ext-pcntl": "*",
     "ext-posix": "*"
   },
