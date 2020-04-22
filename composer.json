@@ -1,7 +1,6 @@
 {
   "name": "ikarus/sps-common-management",
   "license": "BSD-3-Clause",
-  "minimum-stability": "dev",
   "description": "The common management is designed to combine two or more running sps with their values and commands for sharing them between them.",
   "authors": [
     {
