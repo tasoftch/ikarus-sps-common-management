@@ -17,8 +17,10 @@
     "php": "^7.2",
     "ikarus/sps": "^1",
     "tasoft/php-pdo": "^0",
+    "tasoft/process": "^1.0",
     "ext-pcntl": "*",
-    "ext-posix": "*"
+    "ext-posix": "*",
+    "ext-sockets": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "^6"
