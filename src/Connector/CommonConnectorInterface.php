@@ -32,7 +32,7 @@
  *
  */
 
-namespace Ikarus\SPS\Common\Plugin;
+namespace Ikarus\SPS\Common\Connector;
 
 
 use TASoft\Util\PDO;

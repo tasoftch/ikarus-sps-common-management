@@ -32,9 +32,32 @@
  *
  */
 
-namespace Ikarus\SPS\Common\Plugin;
+namespace Ikarus\SPS\Common\Connector;
 
 
-class PDOConnector extends AbstractConnector
+use TASoft\Util\PDO;
+
+abstract class AbstractConnector implements CommonConnectorInterface
 {
+    protected $dsn;
+    protected $username;
+    protected $password;
+
+    /**
+     * AbstractConnector constructor.
+     * @param $dsn
+     * @param $username
+     * @param $password
+     */
+    public function __construct($dsn, $username = NULL, $password = NULL)
+    {
+        $this->dsn = $dsn;
+        $this->username = $username;
+        $this->password = $password;
+    }
+
+    public function getPDO()
+    {
+        return new PDO($this->dsn, $this->username, $this->password);
+    }
 }
