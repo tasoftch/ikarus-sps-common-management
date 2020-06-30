@@ -90,6 +90,14 @@ abstract class AbstractCommonManagementServerPlugin extends AbstractCyclicPlugin
 
 		$this->process = new BackgroundProcess(sprintf($cmd));
 		$this->process->run();
+
+		if($type == 'unix') {
+			for($e=0;$e<1000;$e++) {
+				if(file_exists($this->connectionAddress()))
+					break;
+				usleep(100);
+			}
+		}
 	}
 
 	public function tearDown()

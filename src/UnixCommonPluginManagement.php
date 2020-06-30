@@ -81,6 +81,6 @@ class UnixCommonPluginManagement extends AbstractSocketCommonPluginManagement
 	{
 		@socket_write($this->socket, 'exit', 4);
 		@socket_close($this->socket);
-		unlink($this->getUnixName());
+		@unlink($this->getUnixName());
 	}
 }
