@@ -132,6 +132,8 @@ while (1) {
 			if (in_array($client[$i]['sock'], $read)) {
 				$input = socket_read($client[$i]['sock'], 1024);
 				if ($input == NULL) {
+					socket_close($client[$i]['sock']);
+					unset($client[$i]);
 					continue;
 				}
 				$n = trim($input);
@@ -173,9 +175,9 @@ function hasv($domain, $key) {
 function getv($domain, $key) {
 	global $STORAGE;
 	if(NULL == $key)
-		return $STORAGE[$domain];
+		return $STORAGE[$domain] ?? NULL;
 	else
-		return $STORAGE[$domain][$key];
+		return $STORAGE[$domain][$key] ?? NULL;
 }
 
 function stop($code, $reason) {

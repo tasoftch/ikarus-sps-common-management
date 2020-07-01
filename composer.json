@@ -23,6 +23,7 @@
     "ext-sockets": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6"
+    "phpunit/phpunit": "^6",
+    "ikarus/sps-client": "^0.2"
   }
 }
