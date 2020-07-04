@@ -36,6 +36,7 @@ namespace Ikarus\SPS\Common;
 
 
 use Ikarus\SPS\Alert\AlertInterface;
+use Ikarus\SPS\Alert\AlertRecoveryInterface;
 use Ikarus\SPS\Helper\CyclicPluginManager;
 use Ikarus\SPS\Plugin\PluginInterface;
 
@@ -45,6 +46,8 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 	/** @var resource */
 	protected $socket;
 	protected $alerts = [];
+
+	private $pendentAlertCount = 0;
 
 	public function __construct($identifier)
 	{
@@ -145,16 +148,34 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 	{
 		$this->_checkSocket();
 		if(is_string($alert)) {
-			if($this->sendCommand("alrtq ".serialize([$alert])))
-				return parent::recoverAlert($alert);
+			$this->sendCommand("alrtq ".serialize([$alert]));
+			return parent::recoverAlert($alert);
 		} elseif($alert instanceof AlertInterface)
 			return parent::recoverAlert($alert);
 
 		return false;
 	}
 
-	public function isAlertRecovered($alert) : bool {
-		return $this->sendCommand("ialrtq " . serialize([$this->identifier, $alert]));
+	/**
+	 * @
+	 */
+	public function beginCycle() {
+		if($this->alerts) {
+			if($recovered = $this->sendCommand("ialrtq " . serialize([]))) {
+				/** @var AlertInterface $alert */
+				$alerts = $this->alerts;
+				foreach($alerts as $alert) {
+					if(!in_array("$this->identifier::".$alert->getID(), $recovered)) {
+						if($alert instanceof AlertRecoveryInterface)
+							$alert->resume();
+						unset($this->alerts[$alert->getID()]);
+					}
+				}
+				unset($recovered["#"]);
+				$this->pendentAlertCount = count($recovered);
+			}
+		}
+		$this->pendentAlertCount = 0;
 	}
 
 	/**
@@ -163,5 +184,42 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 	public function tearDown() {
 		if($this->socket)
 			$this->disconnectSocket();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getAlerts(): array
+	{
+		$this->_checkSocket();
+		$alrts = [];
+		if($alerts = $this->sendCommand("alrtget " . serialize([]))) {
+			foreach($alerts as $key => $value) {
+				if($key == '#')
+					continue;
+
+				list($code, $msg, $ts, $plugin) = $value;
+				list($project, $key) = explode("::", $key, 2);
+
+				$alrts[] = [
+					'uid' => $key,
+					'code' => $code,
+					'message' => $msg,
+					'brick' => $plugin,
+					'date' => date("d.m.Y", $ts),
+					"time" => date("G:i", $ts),
+					"project" => $project
+				];
+			}
+		}
+		return $alrts;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getPendentAlertCount(): int
+	{
+		return $this->pendentAlertCount;
 	}
 }
