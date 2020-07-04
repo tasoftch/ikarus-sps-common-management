@@ -225,6 +225,11 @@ function alrt($pid, $aid, $code, $msg, $ts, $plugin) {
 	return true;
 }
 
+function alrtget() {
+	global $ALERT;
+	return $ALERT;
+}
+
 function alrtq($aid) {
 	global $ALERT;
 	if($alerts = $ALERT["#"][$aid] ?? NULL) {
@@ -236,9 +241,9 @@ function alrtq($aid) {
 	return true;
 }
 
-function ialrtq($pid, $aid) {
+function ialrtq() {
 	global $ALERT;
-	return isset($ALERT["$pid::$pid::$aid"]) ? false : true;
+	return array_keys($ALERT);
 }
 
 socket_close($socket);
