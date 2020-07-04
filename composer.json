@@ -15,7 +15,7 @@
   },
   "require" : {
     "php": "^7.2",
-    "ikarus/sps": "^1",
+    "ikarus/sps": ">=1.2.5",
     "tasoft/php-pdo": "^0",
     "tasoft/process": "^1.0",
     "ext-pcntl": "*",
