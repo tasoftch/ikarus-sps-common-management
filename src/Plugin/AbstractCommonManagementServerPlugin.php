@@ -51,7 +51,19 @@ abstract class AbstractCommonManagementServerPlugin extends AbstractCyclicPlugin
 {
 	/** @var BackgroundProcess */
 	private $process;
+	private $gateway;
 
+	/**
+	 * @param string $dirName
+	 * @return static
+	 */
+	public function setGateway(string $dirName) {
+		if(is_dir($dirName))
+			$this->gateway = $dirName;
+		else
+			trigger_error("AbstractCommonManagementServerPlugin::setGateway() : File or Directory not found", E_USER_WARNING);
+		return $this;
+	}
 
 	/**
 	 * @inheritDoc
@@ -86,6 +98,9 @@ abstract class AbstractCommonManagementServerPlugin extends AbstractCyclicPlugin
 				$cmd .= escapeshellarg($this->connectionPort());
 				break;
 		}
+
+		if($this->gateway)
+			$cmd.= " " . escapeshellarg($this->gateway);
 
 
 		$this->process = new BackgroundProcess(sprintf($cmd));

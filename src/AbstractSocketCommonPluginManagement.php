@@ -37,6 +37,9 @@ namespace Ikarus\SPS\Common;
 
 use Ikarus\SPS\Alert\AlertInterface;
 use Ikarus\SPS\Alert\AlertRecoveryInterface;
+use Ikarus\SPS\Alert\NoticeAlert;
+use Ikarus\SPS\Alert\WarningAlert;
+use Ikarus\SPS\Error\Warning;
 use Ikarus\SPS\Helper\CyclicPluginManager;
 use Ikarus\SPS\Plugin\PluginInterface;
 
@@ -132,13 +135,20 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 		$this->alerts[ $alert->getID() ] = $alert;
 		$pl = $alert->getAffectedPlugin();
 
+		$level = 3;
+		if($alert instanceof NoticeAlert)
+		    $level = 1;
+		elseif($alert instanceof WarningAlert)
+            $level = 2;
+
 		$info = [
 			$this->identifier,
 			$alert->getID(),
 			$alert->getCode(),
 			$alert->getMessage(),
 			$alert->getTimeStamp(),
-			$pl instanceof PluginInterface ? $pl->getIdentifier() : ""
+			$pl instanceof PluginInterface ? $pl->getIdentifier() : "",
+            $level
 		];
 
 		return $this->sendCommand("alrt " . serialize($info)) ? true : false;
@@ -175,7 +185,8 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 				$this->pendentAlertCount = count($recovered);
 			}
 		}
-		$this->pendentAlertCount = 0;
+		else
+			$this->pendentAlertCount = 0;
 	}
 
 	/**
@@ -198,7 +209,7 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 				if($key == '#')
 					continue;
 
-				list($code, $msg, $ts, $plugin) = $value;
+				list($code, $msg, $ts, $plugin, $level) = $value;
 				list($project, $key) = explode("::", $key, 2);
 
 				$alrts[] = [
@@ -208,7 +219,8 @@ abstract class AbstractSocketCommonPluginManagement extends CyclicPluginManager
 					'brick' => $plugin,
 					'date' => date("d.m.Y", $ts),
 					"time" => date("G:i", $ts),
-					"project" => $project
+					"project" => $project,
+                    'level' => $level
 				];
 			}
 		}

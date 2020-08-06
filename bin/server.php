@@ -36,6 +36,8 @@
 $max_clients = 10;
 $client = [];
 
+$gateway = "";
+
 switch ($argv[1]) {
 	case 'unix':
 		$socket = @socket_create(AF_UNIX, SOCK_STREAM, 0);
@@ -47,9 +49,12 @@ switch ($argv[1]) {
 			echo "Failed to bind socket.\n";
 			exit(-2);
 		}
-		$socketHandler = function() use ($argv) {
+		$gateway = $argv[3] ?? "";
+		$socketHandler = function() use ($argv, &$gateway) {
 			if(file_exists($argv[2]))
 				unlink( $argv[2] );
+			if($gateway)
+				unlink("$gateway/running");
 			exit();
 		};
 		break;
@@ -63,7 +68,11 @@ switch ($argv[1]) {
 			echo "Failed to bind socket.\n";
 			exit(-2);
 		}
-		$socketHandler = function() {
+
+		$gateway = $argv[4] ?? "";
+		$socketHandler = function() use (&$gateway) {
+			if($gateway)
+				unlink("$gateway/running");
 			exit();
 		};
 		break;
@@ -71,7 +80,9 @@ switch ($argv[1]) {
 		throw new RuntimeException("No server type specified.");
 }
 
-
+if($gateway) {
+	file_put_contents("$gateway/running", 1);
+}
 socket_listen($socket, $max_clients);
 
 if(function_exists('pcntl_signal')) {
@@ -172,6 +183,11 @@ function hasv($domain, $key) {
 	return array_key_exists($domain, $STORAGE) && array_key_exists($key, $STORAGE[$domain]);
 }
 
+function storage() {
+	global $STORAGE;
+	return $STORAGE;
+}
+
 function getv($domain, $key) {
 	global $STORAGE;
 	if(NULL == $key)
@@ -218,10 +234,13 @@ function clearc($cmd) {
 }
 
 
-function alrt($pid, $aid, $code, $msg, $ts, $plugin) {
-	global $ALERT;
+function alrt($pid, $aid, $code, $msg, $ts, $plugin, $level) {
+	global $ALERT, $gateway;
 	$ALERT["#"][$aid][] = "$pid::$aid";
-	$ALERT["$pid::$aid"] = [$code, $msg, $ts, $plugin];
+	$alert = $ALERT["$pid::$aid"] = [$code, $msg, $ts, $plugin, $level];
+	if($gateway) {
+		file_put_contents("$gateway/alrt-$pid-$aid-$code", "$aid\n$code\n$level\n$ts\n$plugin\n$msg");
+	}
 	return true;
 }
 
@@ -231,9 +250,13 @@ function alrtget() {
 }
 
 function alrtq($aid) {
-	global $ALERT;
+	global $ALERT, $gateway;
 	if($alerts = $ALERT["#"][$aid] ?? NULL) {
 		foreach($alerts as $a) {
+			if($gateway && preg_match("/^([^:]+)::([^:]+)$/", $a, $ms)) {
+				unlink(sprintf("$gateway/alrt-$ms[1]-$ms[2]-%d", $ALERT[$a][0]));
+			}
+
 			unset($ALERT[$a]);
 		}
 		unset($ALERT["#"][$aid]);
